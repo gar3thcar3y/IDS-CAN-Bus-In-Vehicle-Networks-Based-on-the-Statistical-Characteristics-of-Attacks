@@ -1,3 +1,7 @@
+import json
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
 import re
 
@@ -106,6 +110,133 @@ class HCRL_original:
         return df_can[['Timestamp','ID','DLC','Data','Attack']]
 
 
+def _is_attack_label(value):
+    if pd.isna(value):
+        return False
+    if isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        return int(value) == 1
+    normalized = str(value).strip().upper()
+    return normalized in ('T', '1', 'ATTACK', 'TRUE')
+
+
+class ROAD:
+    def parse_can_log(path):
+        """
+        Parse CAN log lines like:
+        (1290000000.012715) can0 230#FD000002D4000400
+        Returns a DataFrame with columns: Timestamp (float), ID (hex str), Data (hex str), ID_int (int)
+        """
+        pattern = re.compile(r'^\((?P<ts>\d+\.\d+)\)\s+\S+\s+(?P<id>[0-9A-Fa-f]+)#(?P<data>[0-9A-Fa-f]+)')
+        rows = []
+        with open(path, 'r', encoding='utf-8') as f:
+            for line in f:
+                m = pattern.match(line.strip())
+                if not m:
+                    continue
+                ts = float(m.group('ts'))
+                id_hex = m.group('id').upper()
+                data_hex = m.group('data').upper()
+
+                if data_hex:
+                    data_bytes = [data_hex[i:i+2] for i in range(0, len(data_hex), 2)]
+                    data_formatted = ' '.join(data_bytes)
+                else:
+                    data_formatted = ''
+
+                try:
+                    id_int = int(id_hex, 16)
+                except ValueError:
+                    id_int = None
+                rows.append((ts, id_hex, data_formatted, id_int))
+        return pd.DataFrame(rows, columns=['Timestamp', 'ID', 'Data', 'ID_int'])
+
+    @staticmethod
+    def load_metadata(metadata_path):
+        with open(metadata_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    @staticmethod
+    def _injection_intervals(entry):
+        intervals = entry.get('injection_interval')
+        if not intervals:
+            return []
+
+        if isinstance(intervals[0], (list, tuple)):
+            return [interval for interval in intervals if len(interval) >= 2]
+
+        if len(intervals) >= 2:
+            return [intervals]
+
+        return []
+
+    @staticmethod
+    def apply_attack_labels(df, capture_name, metadata):
+        """
+        Set binary Attack labels using ROAD capture metadata.
+
+        0 = normal traffic, 1 = injected attack frames.
+        Rows outside injection_interval are 0; rows inside are 1.
+        Accelerator captures have no injection_interval and remain all 0.
+        """
+        labeled = df.copy()
+        labeled['Attack'] = 0
+
+        entry = metadata.get(capture_name)
+        if not entry or labeled.empty:
+            return labeled
+
+        start_time = labeled['Timestamp'].iloc[0]
+        for interval in ROAD._injection_intervals(entry):
+            start = start_time + interval[0]
+            end = start_time + interval[1]
+            labeled.loc[labeled['Timestamp'].between(start, end), 'Attack'] = 1
+
+        labeled['Attack'] = labeled['Attack'].astype(int)
+        return labeled
+
+    @staticmethod
+    def load_captures_from_directory(directory):
+        """
+        Load every .log file in a ROAD directory into its own labeled dataframe.
+
+        Returns a list of (log_path, dataframe) tuples.
+        """
+        directory = Path(directory)
+        metadata_path = directory / 'capture_metadata.json'
+        metadata = ROAD.load_metadata(metadata_path) if metadata_path.exists() else {}
+
+        captures = []
+        for log_path in sorted(directory.glob('*.log')):
+            df = ROAD.parse_can_log(log_path)
+            df = ROAD.apply_attack_labels(df, log_path.stem, metadata)
+            captures.append((log_path, df))
+        return captures
+
+    @staticmethod
+    def load_dataset(road_root):
+        """
+        Load ambient and attack ROAD captures as separate lists of dataframes.
+
+        Returns:
+            {
+                'ambient_paths': [...],
+                'ambient_dfs': [...],
+                'attack_paths': [...],
+                'attack_dfs': [...],
+            }
+        """
+        road_root = Path(road_root)
+        ambient = ROAD.load_captures_from_directory(road_root / 'ambient')
+        attacks = ROAD.load_captures_from_directory(road_root / 'attacks')
+        return {
+            'ambient_paths': [path for path, _ in ambient],
+            'ambient_dfs': [df for _, df in ambient],
+            'attack_paths': [path for path, _ in attacks],
+            'attack_dfs': [df for _, df in attacks],
+        }
+
 
 class CAN_MIRGU:
     def parse_can_log(filepath):
@@ -150,22 +281,27 @@ class HCRL_survival_analysis:
         return HCRL_original.parse_can_csv(file_path)
 
 
-import numpy as np
-
 def sliding_windows_id_data(df, window_size=32, step=2, attack_label='T'):
     ids = df['ID'].to_numpy(dtype=object)
     data = df['Data'].to_numpy(dtype=object)
-    attack = df['Attack'].to_numpy(dtype=object)
+
+    if 'Attack' in df.columns:
+        attack = df['Attack'].to_numpy(dtype=object)
+        def label_window(window_attack_values):
+            return attack_label if any(_is_attack_label(v) for v in window_attack_values) else 'Real'
+    else:
+        attack = None
+        def label_window(window_attack_values):
+            return attack_label
 
     n = len(df)
-    num_windows = (n - window_size) // step + 1
     windows = []
     window_labels = []
 
     for start in range(0, n - window_size + 1, step):
         end = start + window_size
         windows.append(np.column_stack((ids[start:end], data[start:end])))
-        window_labels.append(attack_label if 'T' in attack[start:end] else 'Real')
+        window_labels.append(label_window(attack[start:end] if attack is not None else []))
 
     return windows, np.array(window_labels, dtype=object)
 
