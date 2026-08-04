@@ -1,0 +1,4 @@
+conv1_filters,conv2_filters,conv1_kernel,conv2_kernel,accuracy,precision,recall,f1,status,error
+16,16,"(2, 2)","(2, 2)",0.8536,0.855,0.8536,0.8542,Success,
+16,16,"(2, 2)","(3, 3)",0.8619,0.8623,0.8619,0.8621,Success,
+16,16,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
