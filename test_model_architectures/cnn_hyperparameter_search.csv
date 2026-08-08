@@ -1,4 +1,82 @@
 conv1_filters,conv2_filters,conv1_kernel,conv2_kernel,accuracy,precision,recall,f1,status,error
-16,16,"(2, 2)","(2, 2)",0.8536,0.855,0.8536,0.8542,Success,
-16,16,"(2, 2)","(3, 3)",0.8619,0.8623,0.8619,0.8621,Success,
+64,64,"(3, 3)","(2, 2)",0.9438,0.948,0.9438,0.9448,Success,
+32,64,"(3, 3)","(2, 2)",0.9395,0.9415,0.9395,0.9402,Success,
+64,16,"(3, 3)","(2, 2)",0.9305,0.9329,0.9305,0.9313,Success,
+64,64,"(3, 3)","(3, 3)",0.9307,0.9303,0.9307,0.9305,Success,
+64,32,"(3, 3)","(2, 2)",0.9299,0.929,0.9299,0.9291,Success,
+64,32,"(3, 3)","(3, 3)",0.9263,0.93,0.9263,0.9274,Success,
+64,64,"(2, 2)","(2, 2)",0.925,0.9247,0.925,0.9248,Success,
+16,64,"(3, 3)","(2, 2)",0.9217,0.9212,0.9217,0.9214,Success,
+64,16,"(3, 3)","(3, 3)",0.9194,0.9187,0.9194,0.919,Success,
+32,32,"(3, 3)","(2, 2)",0.9107,0.92,0.9107,0.913,Success,
+32,64,"(3, 3)","(3, 3)",0.9064,0.919,0.9064,0.9092,Success,
+64,32,"(2, 2)","(2, 2)",0.9028,0.9093,0.9028,0.9047,Success,
+32,64,"(2, 2)","(3, 3)",0.9066,0.9049,0.9066,0.9045,Success,
+32,64,"(2, 2)","(2, 2)",0.9016,0.9095,0.9016,0.9038,Success,
+64,32,"(2, 2)","(3, 3)",0.9014,0.9072,0.9014,0.9032,Success,
+32,16,"(3, 3)","(2, 2)",0.8997,0.9044,0.8997,0.9013,Success,
+64,64,"(2, 2)","(3, 3)",0.8988,0.9057,0.8988,0.9009,Success,
+32,64,"(4, 4)","(2, 2)",0.9017,0.8998,0.9017,0.9,Success,
+64,16,"(2, 2)","(2, 2)",0.8968,0.9001,0.8968,0.898,Success,
+32,32,"(3, 3)","(3, 3)",0.8936,0.9088,0.8936,0.8971,Success,
+16,64,"(2, 2)","(2, 2)",0.896,0.8969,0.896,0.8964,Success,
+64,64,"(4, 4)","(2, 2)",0.8946,0.8966,0.8946,0.8954,Success,
+32,16,"(2, 2)","(2, 2)",0.8951,0.8946,0.8951,0.8948,Success,
+16,64,"(3, 3)","(3, 3)",0.8912,0.8999,0.8912,0.8938,Success,
+16,64,"(2, 2)","(3, 3)",0.8921,0.8965,0.8921,0.8937,Success,
+16,16,"(3, 3)","(3, 3)",0.8894,0.8891,0.8894,0.8893,Success,
+64,16,"(2, 2)","(3, 3)",0.8879,0.8876,0.8879,0.8878,Success,
+64,16,"(4, 4)","(2, 2)",0.8887,0.8862,0.8887,0.8865,Success,
+32,32,"(2, 2)","(2, 2)",0.8848,0.8886,0.8848,0.8862,Success,
+32,16,"(3, 3)","(3, 3)",0.8837,0.8907,0.8837,0.886,Success,
+16,16,"(3, 3)","(2, 2)",0.8795,0.8854,0.8795,0.8816,Success,
+64,32,"(4, 4)","(2, 2)",0.8769,0.8883,0.8769,0.8802,Success,
+16,32,"(3, 3)","(3, 3)",0.8776,0.8841,0.8776,0.8798,Success,
+16,32,"(3, 3)","(2, 2)",0.8774,0.8846,0.8774,0.8798,Success,
+16,32,"(2, 2)","(2, 2)",0.8805,0.8784,0.8805,0.8791,Success,
+16,32,"(2, 2)","(3, 3)",0.8718,0.8732,0.8718,0.8724,Success,
+32,32,"(4, 4)","(2, 2)",0.8692,0.8794,0.8692,0.8724,Success,
+16,16,"(4, 4)","(2, 2)",0.8672,0.8661,0.8672,0.8666,Success,
+16,64,"(4, 4)","(2, 2)",0.8687,0.8652,0.8687,0.8659,Success,
+32,32,"(2, 2)","(3, 3)",0.8624,0.8706,0.8624,0.8652,Success,
+16,16,"(2, 2)","(2, 2)",0.8675,0.8638,0.8675,0.8646,Success,
+32,16,"(4, 4)","(2, 2)",0.8535,0.8677,0.8535,0.8577,Success,
+32,16,"(2, 2)","(3, 3)",0.8524,0.8511,0.8524,0.8517,Success,
+16,32,"(4, 4)","(2, 2)",0.8542,0.849,0.8542,0.8473,Success,
+16,16,"(2, 2)","(3, 3)",0.8232,0.8518,0.8232,0.8306,Success,
 16,16,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,16,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,16,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+16,16,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,32,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,32,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,32,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+16,32,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,64,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,64,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+16,64,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+16,64,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,16,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,16,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,16,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+32,16,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,32,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,32,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,32,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+32,32,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,64,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,64,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+32,64,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+32,64,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,16,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,16,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,16,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+64,16,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,32,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,32,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,32,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+64,32,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,64,"(2, 2)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,64,"(3, 3)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (26 x 3). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
+64,64,"(4, 4)","(3, 3)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (3 x 3). Kernel size can't be greater than actual input size
+64,64,"(4, 4)","(4, 4)",,,,,Failed,Calculated padded input size per channel: (25 x 2). Kernel size: (4 x 4). Kernel size can't be greater than actual input size
