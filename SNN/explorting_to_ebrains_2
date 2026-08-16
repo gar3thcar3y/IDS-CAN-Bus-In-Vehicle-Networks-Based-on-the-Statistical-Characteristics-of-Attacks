@@ -1,0 +1,386 @@
+import numpy as np
+
+X_test = np.load("x_test.npz")
+X_test = X_test[X_test.files[0]]
+
+y_test = np.load("y_test.npz")
+y_test = y_test[y_test.files[0]]
+
+print("X_test shape:", X_test.shape)
+print("y_test shape:", y_test.shape)
+
+def encode_rate(
+    x,
+    simulation_time=100.0,
+    max_rate=100.0
+):
+
+    x = x.flatten().astype(np.float32)
+
+    # Normalise
+    x_min = x.min()
+    x_max = x.max()
+
+    if x_max > x_min:
+        x = (x - x_min) / (x_max - x_min)
+    else:
+        x = np.zeros_like(x)
+
+    spike_times = []
+
+    for value in x:
+
+        rate = value * max_rate
+
+        if rate <= 0:
+            spike_times.append([])
+            continue
+
+        isi = 1000.0 / rate
+
+        times = np.arange(
+            isi,
+            simulation_time,
+            isi
+        )
+
+        spike_times.append(times.tolist())
+
+    return spike_times
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from _static.common.helpers import setup_hardware_client
+setup_hardware_client()
+
+import pynn_brainscales.brainscales2 as pynn
+
+import numpy as np
+
+
+
+
+weights_file = "w_data_for_snn.npz"
+
+
+with np.load(weights_file, allow_pickle=False) as data:
+    W_conv1 = data["W_conv1"]
+    b_conv1 = data["b_conv1"]
+    W_conv2 = data["W_conv2"]
+    b_conv2 = data["b_conv2"]
+    W_dense1 = data["W_dense1"]
+    b_dense1 = data["b_dense1"]
+    W_dense2 = data["W_dense2"]
+    b_dense2 = data["b_dense2"]
+
+threshold = 0.300
+
+W_conv1[np.abs(W_conv1) < threshold] = 0
+b_conv1[np.abs(b_conv1) < threshold] = 0
+
+W_conv2[np.abs(W_conv2) < threshold] = 0
+b_conv2[np.abs(b_conv2) < threshold] = 0
+
+W_dense1[np.abs(W_dense1) < threshold] = 0
+b_dense1[np.abs(b_dense1) < threshold] = 0
+
+W_dense2[np.abs(W_dense2) < threshold] = 0
+b_dense2[np.abs(b_dense2) < threshold] = 0
+
+
+print(W_conv1.shape)
+print(b_conv1.shape)
+
+print(W_conv2.shape)
+print(b_conv2.shape)
+
+print(W_dense1.shape)
+print(b_dense1.shape)
+
+print(W_dense2.shape)
+print(b_dense2.shape)
+
+import pyNN.spiNNaker as sim
+
+sim.setup(timestep=1.0)
+
+
+input_population = sim.Population(
+    54 * 8 * 1,
+    sim.SpikeSourceArray(
+        spike_times=encode_rate(X_test[0])
+    ),
+    label="input"
+)
+
+conv1_population = sim.Population(
+    32 * 52 * 6,
+    sim.IF_curr_exp(
+        tau_m=20.0,
+        v_rest=-65.0,
+        v_reset=-65.0,
+        v_thresh=-50.0,
+        tau_syn_E=5.0,
+        tau_syn_I=5.0
+    ),
+    label="conv1"
+)
+
+def create_conv2d_connections(
+    weights,
+    input_height,
+    input_width,
+    input_channels,
+    output_channels,
+    kernel_height,
+    kernel_width,
+    stride=1,
+    padding=0
+):
+    connections = []
+
+    output_height = (
+        input_height + 2 * padding - kernel_height
+    ) // stride + 1
+
+    output_width = (
+        input_width + 2 * padding - kernel_width
+    ) // stride + 1
+
+    for out_y in range(output_height):
+        for out_x in range(output_width):
+            for out_c in range(output_channels):
+
+                post_index = (
+                    out_c * output_height * output_width
+                    + out_y * output_width
+                    + out_x
+                )
+
+                for ky in range(kernel_height):
+                    for kx in range(kernel_width):
+                        for in_c in range(input_channels):
+
+                            in_y = (
+                                out_y * stride
+                                + ky
+                                - padding
+                            )
+
+                            in_x = (
+                                out_x * stride
+                                + kx
+                                - padding
+                            )
+
+                            # Ignore positions outside
+                            # the image
+                            if (
+                                in_y < 0
+                                or in_y >= input_height
+                                or in_x < 0
+                                or in_x >= input_width
+                            ):
+                                continue
+
+                            pre_index = (
+                                in_c * input_height * input_width
+                                + in_y * input_width
+                                + in_x
+                            )
+
+                            weight = weights[
+                                ky,
+                                kx,
+                                in_c,
+                                out_c
+                            ]
+
+                            # Don't create zero-weight synapses
+                            if weight != 0:
+
+                                connections.append(
+                                    (
+                                        pre_index,
+                                        post_index,
+                                        float(weight),
+                                        1.0
+                                    )
+                                )
+
+    return connections
+
+
+conv1_connections = create_conv2d_connections(
+    W_conv1,
+    input_height=54,
+    input_width=8,
+    input_channels=1,
+    output_channels=32,
+    kernel_height=3,
+    kernel_width=3
+)
+
+conv1_projection = sim.Projection(
+    input_population,
+    conv1_population,
+    sim.FromListConnector(conv1_connections)
+)
+
+conv2_population = sim.Population(
+    64 * 50 * 4,
+    sim.IF_curr_exp(
+        tau_m=20.0,
+        v_rest=-65.0,
+        v_reset=-65.0,
+        v_thresh=-50.0,
+        tau_syn_E=5.0,
+        tau_syn_I=5.0
+    ),
+    label="conv2"
+)
+
+conv2_connections = create_conv2d_connections(
+    W_conv2,
+    input_height=52,
+    input_width=6,
+    input_channels=32,
+    output_channels=64,
+    kernel_height=3,
+    kernel_width=3
+)
+
+conv2_projection = sim.Projection(
+    conv1_population,
+    conv2_population,
+    sim.FromListConnector(conv2_connections)
+)
+
+dense1_population = sim.Population(
+    64,
+    sim.IF_curr_exp(
+        tau_m=20.0,
+        v_rest=-65.0,
+        v_reset=-65.0,
+        v_thresh=-50.0,
+        tau_syn_E=5.0,
+        tau_syn_I=5.0
+    ),
+    label="dense1"
+)
+
+dense1_connections = []
+
+for pre in range(12800):
+    for post in range(64):
+
+        weight = W_dense1[pre, post]
+
+        if weight != 0:
+
+            dense1_connections.append(
+                (
+                    pre,
+                    post,
+                    float(weight),
+                    1.0
+                )
+            )
+
+dense1_projection = sim.Projection(
+    conv2_population,
+    dense1_population,
+    sim.FromListConnector(dense1_connections)
+)
+
+output_population = sim.Population(
+    2,
+    sim.IF_curr_exp(
+        tau_m=20.0,
+        v_rest=-65.0,
+        v_reset=-65.0,
+        v_thresh=-50.0,
+        tau_syn_E=5.0,
+        tau_syn_I=5.0
+    ),
+    label="output"
+)
+
+dense2_connections = []
+
+for pre in range(64):
+    for post in range(2):
+
+        weight = W_dense2[pre, post]
+
+        if weight != 0:
+
+            dense2_connections.append(
+                (
+                    pre,
+                    post,
+                    float(weight),
+                    1.0
+                )
+            )
+
+dense2_projection = sim.Projection(
+    dense1_population,
+    output_population,
+    sim.FromListConnector(dense2_connections)
+)
+
+
+#testing-------------------
+
+
+
+predictions = []
+
+for x in X_test:
+    print("testing")
+
+    spike_times = encode_rate(x)
+
+    input_population = sim.Population(
+        432,
+        sim.SpikeSourceArray(
+            spike_times=spike_times
+        )
+    )
+
+    output_population.record("spikes")
+
+    sim.run(100.0)
+
+    data = output_population.get_data("spikes")
+
+    spike_counts = []
+
+    for neuron in data.segments[0].spiketrains:
+        spike_counts.append(len(neuron))
+
+    prediction = np.argmax(spike_counts)
+
+    predictions.append(prediction)
+
+    # Important: reset before next sample
+    sim.reset()
